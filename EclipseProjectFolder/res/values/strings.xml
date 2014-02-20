@@ -4,5 +4,8 @@
     <string name="app_name">Trail Head Map</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
+    <string name="dist1">3 Miles</string>
+    <string name="dist2">10 Miles</string>
+    <string name="search_hint">Search</string>
 
 </resources>
