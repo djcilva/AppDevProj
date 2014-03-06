@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationChangeListener;
 
 import android.content.Context;
@@ -56,7 +57,7 @@ public class MainActivity extends FragmentActivity {
     private TrailDataSource datasource;
     private float[] result = new float[1];
 
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,11 +77,11 @@ public class MainActivity extends FragmentActivity {
         /* TODO here check for internet connection, check onlined database and sink.
          * right now, delete the table and re-add the hard-coded in links
          */
-        datasource.clearTable();
-        populateTable();
+        //datasource.clearTable();
+        //populateTable();
         fillArray();
 
-        initListeners();
+        
         try {
             // Loading map
             initilizeMap();
@@ -91,7 +92,10 @@ public class MainActivity extends FragmentActivity {
         googleMap.getUiSettings().setMyLocationButtonEnabled(true);
         googleMap.getUiSettings().setRotateGesturesEnabled(false);
         googleMap.getUiSettings().setZoomControlsEnabled(false);
-       
+        initListeners();
+        if (googleMap != null) {
+        	googleMap.setOnMyLocationChangeListener(locChangeList);
+        }
     }
  
     /**
@@ -105,9 +109,6 @@ public class MainActivity extends FragmentActivity {
                     .getMap();
             googleMap.setMyLocationEnabled(true);
             // Check if we were successful in obtaining the map.
-            if (googleMap != null) {
-            	googleMap.setOnMyLocationChangeListener(locChangeList);
-            }
         }
     }
     
@@ -190,6 +191,22 @@ public class MainActivity extends FragmentActivity {
 			public void onStopTrackingTouch(SeekBar seekBar) {				
 			}
     	});
+    	
+        googleMap.setOnMapLongClickListener((new OnMapLongClickListener() {
+
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+            	//TODO make better interface
+            	if(searchText.getText().toString().trim().length() == 0)
+            		return;
+            	datasource.createTrail(searchText.getText().toString(), latLng.latitude, latLng.longitude);
+            	searchText.setText("");
+            	//TODO stupid ineficient
+            	fillArray();
+                
+
+            }
+        })); 
     }
  
     private void populateTable(){
@@ -207,6 +224,7 @@ public class MainActivity extends FragmentActivity {
     }
     
     private void fillArray(){
+    	locationMarkerList.clear();
     	Cursor cursor = datasource.getAllTrails();
     	cursor.moveToFirst();
     	while(!cursor.isAfterLast()){
