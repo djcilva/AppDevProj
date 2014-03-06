@@ -7,5 +7,6 @@
     <string name="dist1">3 Miles</string>
     <string name="dist2">10 Miles</string>
     <string name="search_hint">Search</string>
+    <string name="units">Miles</string>
 
 </resources>

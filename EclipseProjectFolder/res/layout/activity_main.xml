@@ -11,7 +11,7 @@
 	    android:layout_height="match_parent"
 	    class="com.google.android.gms.maps.SupportMapFragment"
 	    android:name="com.testing.svma.MainActivity"/>
-	
+	<!-- 
 	<RadioGroup 
         android:id="@+id/radio_group_list_selector"
         android:layout_width="match_parent"
@@ -37,6 +37,29 @@
             android:layout_weight="1"/>
         
 	</RadioGroup>
+	-->
+
+	<LinearLayout
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent" >
+
+		<SeekBar
+		    android:id="@+id/searchSlider"
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    android:layout_weight="1"
+		    android:background="#80000000" />
+
+		<TextView
+		    android:id="@+id/sliderValue"
+		    android:layout_width="90dp"
+		    android:layout_height="32dp"
+		    android:background="#80000000"
+		    android:gravity="center"
+		    android:text=""
+		    android:textColor="#FFFFFF" />
+
+	</LinearLayout>
 
 	<EditText
 	    android:id="@+id/search"

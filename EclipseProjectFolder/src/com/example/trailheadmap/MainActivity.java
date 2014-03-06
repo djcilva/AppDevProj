@@ -18,6 +18,8 @@ import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.*;
@@ -31,16 +33,21 @@ public class MainActivity extends FragmentActivity {
 	private static final int DISTANCE_1 = 3;
 	private static final int DISTANCE_2 = 10;
 	
+	private static final int MAX_DISTANCE = 30;
+	
 	// String where dynamic search text is stored
 	private String searchString = "";
     private EditText searchText;
+    //private RadioGroup radioGroup;
+    private SeekBar slider;
+    private TextView distText;
+
 	
 	// Google Map
     private GoogleMap googleMap;
     private double latitude;
     private double longitude;
     private boolean onlyOnce = true;
-    private RadioGroup radioGroup;
     private MarkerOptions[] locationMarkers = new MarkerOptions[2];
     private double[] distances = new double[2]; //in miles
     private Location tempLoc;
@@ -54,7 +61,15 @@ public class MainActivity extends FragmentActivity {
         viewDistance = DISTANCE_1;
         setContentView(R.layout.activity_main);
         searchText = (EditText) findViewById(R.id.search);
-        radioGroup = (RadioGroup) findViewById(R.id.radio_group_list_selector);
+        
+        slider = (SeekBar) findViewById(R.id.searchSlider);
+        slider.setMax(MAX_DISTANCE);
+        slider.setProgress(viewDistance);
+        distText = (TextView) findViewById(R.id.sliderValue);
+        updateDistance();
+        
+        
+        /**radioGroup = (RadioGroup) findViewById(R.id.radio_group_list_selector);
         radioGroup.check(R.id.distance1);   
         radioGroup.setOnCheckedChangeListener(new OnCheckedChangeListener() 
         {
@@ -66,7 +81,7 @@ public class MainActivity extends FragmentActivity {
                 else
                 	viewDistance = 0;
             }
-        });
+        });*/
         
         locationMarkers[0] = new MarkerOptions().position(new LatLng(35.29727, -120.68520)).title("Bishop's Peak");
         locationMarkers[1] = new MarkerOptions().position(new LatLng(35.33171, -120.73140)).title("El chorro regional park");
@@ -81,6 +96,7 @@ public class MainActivity extends FragmentActivity {
         }
         googleMap.getUiSettings().setMyLocationButtonEnabled(true);
         googleMap.getUiSettings().setRotateGesturesEnabled(false);
+        googleMap.getUiSettings().setZoomControlsEnabled(false);
        
     }
  
@@ -167,8 +183,30 @@ public class MainActivity extends FragmentActivity {
 					return false;
 			}
 		});
+    	
+    	slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				updateDistance();
+				
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {				
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {				
+			}
+    	});
     }
  
+    private void updateDistance() {
+    	viewDistance = slider.getProgress();
+    	distText.setText(viewDistance + " " + getString(R.string.units));
+    }
+    
     @Override
     protected void onResume() {
         super.onResume();
