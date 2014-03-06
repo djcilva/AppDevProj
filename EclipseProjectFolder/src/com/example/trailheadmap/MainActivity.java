@@ -3,6 +3,7 @@ package com.example.trailheadmap;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationChangeListener;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.location.Location;
 import android.os.Bundle;
@@ -10,11 +11,15 @@ import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.Toast;
+
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -22,8 +27,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MainActivity extends FragmentActivity {
 
-    // Google Map
+	// Constants
+	private static final int DISTANCE_1 = 3;
+	private static final int DISTANCE_2 = 10;
+	
+	// String where dynamic search text is stored
 	private String searchString = "";
+    private EditText searchText;
+	
+	// Google Map
     private GoogleMap googleMap;
     private double latitude;
     private double longitude;
@@ -31,15 +43,15 @@ public class MainActivity extends FragmentActivity {
     private RadioGroup radioGroup;
     private MarkerOptions[] locationMarkers = new MarkerOptions[2];
     private double[] distances = new double[2]; //in miles
-    private EditText searchText;
     private Location tempLoc;
     private int viewDistance;
     private OnMyLocationChangeListener locChangeList;
- 
+
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewDistance = 3;
+        viewDistance = DISTANCE_1;
         setContentView(R.layout.activity_main);
         searchText = (EditText) findViewById(R.id.search);
         radioGroup = (RadioGroup) findViewById(R.id.radio_group_list_selector);
@@ -48,9 +60,9 @@ public class MainActivity extends FragmentActivity {
         {
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if(checkedId == R.id.distance1)
-                	viewDistance = 3;
+                	viewDistance = DISTANCE_1;
                 else if(checkedId == R.id.distance2)
-                	viewDistance = 10;
+                	viewDistance = DISTANCE_2;
                 else
                 	viewDistance = 0;
             }
@@ -73,7 +85,7 @@ public class MainActivity extends FragmentActivity {
     }
  
     /**
-     * function to load map. If map is not created it will create it for you
+     * function to load map. If map is not created it will create it for you.
      * */
     private void initilizeMap() {
     	// Do a null check to confirm that we have not already instantiated the map.
@@ -94,11 +106,9 @@ public class MainActivity extends FragmentActivity {
 
             @Override
             public void onMyLocationChange(Location arg0) {
-             // TODO Auto-generated method stub
-
          	   latitude = arg0.getLatitude();
          	   longitude = arg0.getLongitude();
-         	   if(onlyOnce){
+         	   if (onlyOnce){
          		   onlyOnce = false;
          		   CameraPosition cameraPosition = new CameraPosition.Builder().target(
     	                       new LatLng(latitude, longitude)).zoom(12).build();
@@ -113,15 +123,16 @@ public class MainActivity extends FragmentActivity {
          	   
          	   googleMap.clear();
          	   
-         	   
-                for(int i = 0; i < locationMarkers.length; i++){
-    	            	if(distances[i] < viewDistance && locationMarkers[i].getTitle().contains(searchString))
-    	            		googleMap.addMarker(locationMarkers[i]);
-                } 
+         	   /** Location marker searching occurs here */
+               for(int i = 0; i < locationMarkers.length; i++){
+    	           	if(distances[i] < viewDistance && locationMarkers[i].getTitle().contains(searchString))
+    	           		googleMap.addMarker(locationMarkers[i]);
+               } 
             
             }
            });
     	
+    	// Listener for changes in the search box
     	searchText.addTextChangedListener(new TextWatcher() {
 			
 			@Override
@@ -138,7 +149,24 @@ public class MainActivity extends FragmentActivity {
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
 				return;
 			}
-		});	
+		});
+    	
+    	// OnKeyListener to close keyboard when enter is pressed.
+    	searchText.setOnKeyListener(new View.OnKeyListener() {
+			@Override
+			public boolean onKey(View v, int keyCode, KeyEvent event) {
+				
+				if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+					if (event.getAction() == KeyEvent.ACTION_UP) {
+						InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+						imm.hideSoftInputFromWindow(searchText.getWindowToken(), 0);
+					}
+					return true;
+				}
+				else
+					return false;
+			}
+		});
     }
  
     @Override
