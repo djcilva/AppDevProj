@@ -13,6 +13,13 @@
     <string name="diag_cancel_button">cancel</string>
     <string name="diag_add_button">Add Trailhead Marker</string>
     <string name="diag_trail_name_hint">Enter a Trailhead Name</string>
+    <string name="diag_ratemarker_title">Rate this trail head</string>
     <string name="unnamed_trailhead">[Unnamed Trailhead]</string>
+    <string name="rating_text">Rating:\ </string>
+    <string-array name="diag_rating_button_array">
+        <item>Good Trail</item>
+        <item>Bad Trail</item>
+        <item>I don\'t want to rate this trail</item>
+    </string-array>
 
 </resources>

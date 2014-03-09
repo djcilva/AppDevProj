@@ -235,12 +235,6 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
             @Override
             public void onMapLongClick(LatLng latLng) {
             	initiateAddMarkerDialog(latLng);
-            	
-            	/*/TODO make better interface
-            	if(searchText.getText().toString().trim().length() == 0)
-            		return;
-            	datasource.createTrail(searchText.getText().toString(), latLng.latitude, latLng.longitude);
-            	searchText.setText("");*/
             	//TODO stupid inefficient
             	fillArray();
             }
@@ -253,6 +247,17 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
 				lastMarker = marker;
 				marker.showInfoWindow();
 				return false;
+			}
+        });
+        
+        /** Listener to allow users to rate markers by clicking on their info windows. */
+        googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+			@Override
+			public void onInfoWindowClick(Marker marker) {
+				// TODO Auto-generated method stub
+				Toast toast = Toast.makeText(MainActivity.this, "Initiate rating system.", Toast.LENGTH_SHORT);
+				toast.show();
+				initiateRateMarkerDialog(marker);
 			}
         	
         });
@@ -292,7 +297,7 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
     	Cursor cursor = datasource.getAllTrails();
     	cursor.moveToFirst();
     	while(!cursor.isAfterLast()){
-    		locationMarkerList.add(new MarkerOptions().position(new LatLng(cursor.getDouble(4), cursor.getDouble(5))).title(cursor.getString(1)));
+    		locationMarkerList.add(new MarkerOptions().position(new LatLng(cursor.getDouble(4), cursor.getDouble(5))).title(cursor.getString(1)).snippet(this.getString(R.string.rating_text) + (int)(cursor.getDouble(2) * 100) + "%"));
     		cursor.moveToNext();
     	}
     	
@@ -320,9 +325,14 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
     /** Callback method to use add trail head marker when that button is clicked in the dialog. */
 	@Override
 	public void onAddMarkerClick(DialogFragment dialog) {
-		datasource.createTrail(((AddMarkerDialog) dialog).getNewMarkerName(), newMarkerLocation.latitude, newMarkerLocation.longitude);
-		
+		datasource.createTrail(((AddMarkerDialog) dialog).getNewMarkerName(), newMarkerLocation.latitude, newMarkerLocation.longitude);	
 		redrawMarkers();
-		Log.d("xxxxxxxxx", "Redrawn for new trail: " + ((AddMarkerDialog) dialog).getNewMarkerName());
 	}
+	
+	/** Initiates dialog window to rate marker. */
+    private void initiateRateMarkerDialog(Marker marker) {
+    	// TODO: Initiate rating system
+    	//DialogFragment dialog = new RateMarkerDialog();
+        //dialog.show(getSupportFragmentManager(), "RateMarkerDialog");
+    }
 }
