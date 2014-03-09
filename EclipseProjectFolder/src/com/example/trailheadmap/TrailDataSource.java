@@ -93,7 +93,17 @@ public class TrailDataSource {
 			new AsyncTask<URL, Void, Boolean>() {
 				@Override
 				protected Boolean doInBackground(URL... urls) {
-			        return true;
+					boolean success = false;
+					try {
+						Scanner in;
+						in = new Scanner(urls[0].openStream()); 
+						if (in.nextLine().equals("1 record added")) {
+							success = true;
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+			        return success;
 			     }
 
 			     protected void onPostExecute(Boolean success) {

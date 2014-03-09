@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainmenu">
+
+    <item
+        android:id="@+id/enable_gps"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/enable_gps_button"/>
+
+</menu>

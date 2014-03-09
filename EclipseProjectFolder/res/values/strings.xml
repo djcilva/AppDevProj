@@ -8,5 +8,11 @@
     <string name="dist2">10 Miles</string>
     <string name="search_hint">Search</string>
     <string name="units">Miles</string>
+    <string name="enable_gps_button">Enable GPS</string>
+    <string name="diag_addmarker_title">Add a trailhead marker?</string>
+    <string name="diag_cancel_button">cancel</string>
+    <string name="diag_add_button">Add Trailhead Marker</string>
+    <string name="diag_trail_name_hint">Enter a Trailhead Name</string>
+    <string name="unnamed_trailhead">[Unnamed Trailhead]</string>
 
 </resources>
