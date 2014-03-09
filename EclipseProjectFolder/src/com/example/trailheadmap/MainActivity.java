@@ -260,6 +260,7 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
     
     /** Resets the trail head markers. */
     private void redrawMarkers() {
+    	fillArray();
     	/** Location marker searching occurs here */
         for(int i = 0; i < locationMarkerList.size(); i++){
      	   Location.distanceBetween(latitude, longitude, locationMarkerList.get(i).getPosition().latitude, locationMarkerList.get(i).getPosition().longitude, result);
@@ -320,6 +321,7 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
 	@Override
 	public void onAddMarkerClick(DialogFragment dialog) {
 		datasource.createTrail(((AddMarkerDialog) dialog).getNewMarkerName(), newMarkerLocation.latitude, newMarkerLocation.longitude);
+		
 		redrawMarkers();
 		Log.d("xxxxxxxxx", "Redrawn for new trail: " + ((AddMarkerDialog) dialog).getNewMarkerName());
 	}
