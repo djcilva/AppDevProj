@@ -8,14 +8,22 @@ import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationChangeListener;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.provider.Settings;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseAdapter;
@@ -29,14 +37,18 @@ import android.widget.Toast;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends FragmentActivity implements AddMarkerDialog.AddMarkerDialogListener {
 
 	// Constants
 	private static final int INITIAL_DISTANCE = 3;
 	
 	private static final int MAX_DISTANCE = 30;
+	
+	/** Request codes for starting new Activities. */
+	private static final int ENABLE_GPS_REQUEST_CODE = 1;
 	
 	// String where dynamic search text is stored
 	private String searchString = "";
@@ -50,6 +62,8 @@ public class MainActivity extends FragmentActivity {
     private GoogleMap googleMap;
     private double latitude;
     private double longitude;
+    private Marker lastMarker;
+    private LatLng newMarkerLocation;
     private boolean onlyOnce = true;
     private ArrayList<MarkerOptions> locationMarkerList;
     private int viewDistance;
@@ -77,8 +91,8 @@ public class MainActivity extends FragmentActivity {
         /* TODO here check for internet connection, check onlined database and sink.
          * right now, delete the table and re-add the hard-coded in links
          */
-        //datasource.clearTable();
-        //populateTable();
+        datasource.clearTable();
+        populateTable();
         fillArray();
 
         
@@ -98,6 +112,37 @@ public class MainActivity extends FragmentActivity {
         }
     }
  
+    /** Initializes the options menu.*/
+    @Override
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		MenuInflater inflater = this.getMenuInflater();
+		inflater.inflate(R.menu.mainmenu, menu);
+		onPrepareOptionsMenu(menu);
+		return true;
+	}
+    
+    /** For handling clicks to the menu. */
+    @Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		switch (item.getItemId()) {
+		
+		case R.id.enable_gps:
+			this.enableGps();
+			break;
+			
+		default: return super.onOptionsItemSelected(item);
+		}
+		return true;
+	}
+    
+    /** Function to go to the GPS settings so that the user can enable the gps. */
+    private void enableGps() {
+    	Intent gpsOn = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+		startActivityForResult(gpsOn, ENABLE_GPS_REQUEST_CODE);
+    }
+    
     /**
      * function to load map. If map is not created it will create it for you.
      * */
@@ -129,13 +174,7 @@ public class MainActivity extends FragmentActivity {
          	   
          	   googleMap.clear();
          	   
-         	   /** Location marker searching occurs here */
-               for(int i = 0; i < locationMarkerList.size(); i++){
-            	   Location.distanceBetween(latitude, longitude, locationMarkerList.get(i).getPosition().latitude, locationMarkerList.get(i).getPosition().longitude, result);
-    	           	if((result[0] / 1609.34) < viewDistance && Pattern.compile(Pattern.quote(searchString), Pattern.CASE_INSENSITIVE).matcher(locationMarkerList.get(i).getTitle()).find())
-    	           		googleMap.addMarker(locationMarkerList.get(i));
-               } 
-            
+         	   redrawMarkers();
             }
            });
     	
@@ -180,7 +219,6 @@ public class MainActivity extends FragmentActivity {
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
 				updateDistance();
-				
 			}
 
 			@Override
@@ -196,17 +234,42 @@ public class MainActivity extends FragmentActivity {
 
             @Override
             public void onMapLongClick(LatLng latLng) {
-            	//TODO make better interface
+            	initiateAddMarkerDialog(latLng);
+            	
+            	/*/TODO make better interface
             	if(searchText.getText().toString().trim().length() == 0)
             		return;
             	datasource.createTrail(searchText.getText().toString(), latLng.latitude, latLng.longitude);
-            	searchText.setText("");
-            	//TODO stupid ineficient
+            	searchText.setText("");*/
+            	//TODO stupid inefficient
             	fillArray();
-                
-
             }
-        })); 
+        }));
+        
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener(){
+
+			@Override
+			public boolean onMarkerClick(Marker marker) {
+				lastMarker = marker;
+				marker.showInfoWindow();
+				return false;
+			}
+        	
+        });
+    }
+    
+    /** Resets the trail head markers. */
+    private void redrawMarkers() {
+    	/** Location marker searching occurs here */
+        for(int i = 0; i < locationMarkerList.size(); i++){
+     	   Location.distanceBetween(latitude, longitude, locationMarkerList.get(i).getPosition().latitude, locationMarkerList.get(i).getPosition().longitude, result);
+	           	if((result[0] / 1609.34) < viewDistance && Pattern.compile(Pattern.quote(searchString), Pattern.CASE_INSENSITIVE).matcher(locationMarkerList.get(i).getTitle()).find())
+	           		googleMap.addMarker(locationMarkerList.get(i));
+	           	// Display last clicked marker's info window for persistence.
+	        	if (lastMarker != null) {
+	        		lastMarker.showInfoWindow();
+	        	}
+        } 
     }
  
     private void populateTable(){
@@ -231,11 +294,13 @@ public class MainActivity extends FragmentActivity {
     		locationMarkerList.add(new MarkerOptions().position(new LatLng(cursor.getDouble(4), cursor.getDouble(5))).title(cursor.getString(1)));
     		cursor.moveToNext();
     	}
+    	
     }
     
     private void updateDistance() {
     	viewDistance = slider.getProgress();
     	distText.setText(viewDistance + " " + getString(R.string.units));
+    	redrawMarkers();
     }
     
     @Override
@@ -243,4 +308,19 @@ public class MainActivity extends FragmentActivity {
         super.onResume();
         initilizeMap();
     }
+    
+    /** Initiates dialog window to add marker. */
+    private void initiateAddMarkerDialog(LatLng latLng) {
+    	this.newMarkerLocation = latLng;
+    	DialogFragment dialog = new AddMarkerDialog();
+        dialog.show(getSupportFragmentManager(), "AddMarkerDialog");
+    }
+
+    /** Callback method to use add trail head marker when that button is clicked in the dialog. */
+	@Override
+	public void onAddMarkerClick(DialogFragment dialog) {
+		datasource.createTrail(((AddMarkerDialog) dialog).getNewMarkerName(), newMarkerLocation.latitude, newMarkerLocation.longitude);
+		redrawMarkers();
+		Log.d("xxxxxxxxx", "Redrawn for new trail: " + ((AddMarkerDialog) dialog).getNewMarkerName());
+	}
 }
