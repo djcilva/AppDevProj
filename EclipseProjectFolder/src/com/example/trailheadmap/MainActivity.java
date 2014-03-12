@@ -236,7 +236,10 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
             public void onMapLongClick(LatLng latLng) {
             	initiateAddMarkerDialog(latLng);
 <<<<<<< HEAD
+<<<<<<< HEAD
             	//TODO stupid inefficient
+=======
+>>>>>>> 7f8136e5d118bbb4e0be6a551b8a450acd247d78
 =======
 >>>>>>> 7f8136e5d118bbb4e0be6a551b8a450acd247d78
             	fillArray();
