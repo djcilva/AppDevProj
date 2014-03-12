@@ -13,6 +13,7 @@ import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.v4.app.DialogFragment;
@@ -73,6 +74,8 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
     private TrailDataSource datasource;
     private float[] result = new float[1];
 
+    private long lastTime;
+    private static final long LOC_UPDATE_DELAY = 5000;  // miliseconds
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +114,8 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
         if (googleMap != null) {
         	googleMap.setOnMyLocationChangeListener(locChangeList);
         }
+        
+        lastTime = SystemClock.elapsedRealtime();
     }
  
     /** Initializes the options menu.*/
@@ -163,22 +168,29 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
 
             @Override
             public void onMyLocationChange(Location arg0) {
-               fillArray();
-         	   latitude = arg0.getLatitude();
-         	   longitude = arg0.getLongitude();
-         	   if (onlyOnce){
-         		   onlyOnce = false;
-         		   CameraPosition cameraPosition = new CameraPosition.Builder().target(
-    	                       new LatLng(latitude, longitude)).zoom(12).build();
-    	        
-    	        	   googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-         	   }
-         	   
-         	   googleMap.clear();
-         	   
-         	   redrawMarkers();
+            	if (SystemClock.elapsedRealtime() - lastTime < LOC_UPDATE_DELAY) {
+            		return;
+            	}
+            	else {
+            		lastTime = SystemClock.elapsedRealtime();
+            	}
+            	
+            	fillArray();
+	         	latitude = arg0.getLatitude();
+	         	longitude = arg0.getLongitude();
+	         	if (onlyOnce){
+	         	onlyOnce = false;
+	         	CameraPosition cameraPosition = new CameraPosition.Builder().target(
+	    	                    new LatLng(latitude, longitude)).zoom(12).build();
+	    	     
+	    	      	   googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+	         	}
+	         	   
+	         	googleMap.clear();
+	         	   
+	         	redrawMarkers();
             }
-           });
+    	});
     	
     	// Listener for changes in the search box
     	searchText.addTextChangedListener(new TextWatcher() {
