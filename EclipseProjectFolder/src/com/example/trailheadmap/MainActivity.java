@@ -89,10 +89,7 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
         slider.setProgress(viewDistance);
         distText = (TextView) findViewById(R.id.sliderValue);
         updateDistance();
-        
-        /* TODO here check for internet connection, check onlined database and sink.
-         * right now, delete the table and re-add the hard-coded in links
-         */
+
         datasource.clearTable();
         datasource.getJokesFromServer();
 
@@ -237,7 +234,6 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
             @Override
             public void onMapLongClick(LatLng latLng) {
             	initiateAddMarkerDialog(latLng);
-            	//TODO stupid inefficient
             	fillArray();
             }
         }));
@@ -262,7 +258,6 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
         googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
 			@Override
 			public void onInfoWindowClick(Marker marker) {
-				// TODO Auto-generated method stub
 				initiateRateMarkerDialog(marker);
 			}
         });
@@ -271,10 +266,24 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
     /** Resets the trail head markers. */
     private void redrawMarkers() {
     	fillArray();
+    	float rating;
+    	int numRatings;
+    	Cursor c;
     	/** Location marker searching occurs here */
         for(int i = 0; i < locationMarkerList.size(); i++){
+	        c = datasource.getAllTrails();
+	        if(c.getCount() == 0){
+	        	Log.w("tits", "didn't return anything");
+	    		continue;
+	    	}
+	    	c.moveToFirst();
+	    	while(!(c.getString(1).equals(locationMarkerList.get(i).getTitle()))){
+	    		c.moveToNext();
+	    	}
+	    	rating = c.getFloat(2);
+	    	numRatings = c.getInt(3);
      	   Location.distanceBetween(latitude, longitude, locationMarkerList.get(i).getPosition().latitude, locationMarkerList.get(i).getPosition().longitude, result);
-	           	if((result[0] / 1609.34) < viewDistance && Pattern.compile(Pattern.quote(searchString), Pattern.CASE_INSENSITIVE).matcher(locationMarkerList.get(i).getTitle()).find())
+	           	if((rating > .2 || numRatings < 10) && (result[0] / 1609.34) < viewDistance && Pattern.compile(Pattern.quote(searchString), Pattern.CASE_INSENSITIVE).matcher(locationMarkerList.get(i).getTitle()).find())
 	           		googleMap.addMarker(locationMarkerList.get(i));
 	           	// Display last clicked marker's info window for persistence.
 	        	if (lastMarker != null) {
@@ -330,22 +339,20 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
 	@Override
 	public void onRateMarkerClick(DialogFragment dialog, int choice) {
 		Toast toast;
-		
 		switch (choice) {
 			case AddMarkerDialog.RATE_GOOD_INDEX:
-				//TODO: rate trail function here.
+				datasource.updateRating(focusMarker.getTitle(), 1);
 				toast = Toast.makeText(this, "Apply Good Rating.", Toast.LENGTH_SHORT);
 				toast.show();
 				break;
 		
 			case AddMarkerDialog.RATE_BAD_INDEX:
-				//TODO: rate trail function here.
+				datasource.updateRating(focusMarker.getTitle(), 0);
 				toast = Toast.makeText(this, "Apply Bad Rating.", Toast.LENGTH_SHORT);
 				toast.show();
 				break;
 			
 			case AddMarkerDialog.DO_NOT_RATE_INDEX:
-				//TODO: rate trail function here.
 				toast = Toast.makeText(this, "Do not change rating.", Toast.LENGTH_SHORT);
 				toast.show();
 				break;

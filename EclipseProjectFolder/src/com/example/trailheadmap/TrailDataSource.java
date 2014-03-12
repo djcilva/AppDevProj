@@ -9,12 +9,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 
 public class TrailDataSource {
@@ -64,8 +68,28 @@ public class TrailDataSource {
     }
 
 
-    public void updateTrail(String trailName, int qty, String type, String notes, String details, int retail, int landscape) {
-        //TODO add rating to running average and update
+    public void updateRating(String name, int _rating) {
+        Cursor c = database.rawQuery("SELECT * FROM " + MySQLiteHelper.TABLE_NAME + " WHERE " + MySQLiteHelper.COLUMNS[1] + "='" + name + "';", null);
+        float rating;
+        int numRatings;
+        ContentValues values = new ContentValues();
+        
+        if(c.getCount() != 1)
+        	return;
+        c.moveToFirst();
+        rating = c.getFloat(2);
+        numRatings = c.getInt(3);
+        rating = (rating * numRatings + _rating) / (numRatings + 1);
+        numRatings++;
+        
+        values.put("_rating", rating);
+        values.put("_numRatings", numRatings);
+        values.put("_trailName", name);
+        
+        database.update(MySQLiteHelper.TABLE_NAME, values, "_trailName='" + values.getAsString("_trailName") + "'", null);
+        
+        
+        updateRatingToDatabase(values);
     }
 
     public Cursor getAllTrails() {
@@ -76,12 +100,43 @@ public class TrailDataSource {
     	return database.rawQuery(query, null);
     }
     
+    public void updateRatingToDatabase(ContentValues trail) {
+    	try {
+			URL url = new URL("http://dontcare.x10.mx/trails/updateOneTrail.php?" + "_trailName="
+					+ URLEncoder.encode(trail.getAsString("_trailName") , "UTF-8") + "&_rating="
+					+ URLEncoder.encode(trail.getAsString("_rating") , "UTF-8") + "&_numRatings="
+					+ URLEncoder.encode(trail.getAsString("_numRatings") , "UTF-8"));
+
+			new AsyncTask<URL, Void, Boolean>() {
+				@Override
+				protected Boolean doInBackground(URL... urls) {
+					boolean success = false;
+					try {
+						Scanner in;
+						in = new Scanner(urls[0].openStream()); 
+						if (in.nextLine().equals("1 record updated")) {
+							Log.e("tits", "oh it's amazing");
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+			        return success;
+			     }
+
+			     protected void onPostExecute(Boolean success) {
+			     }
+
+			}.execute(url);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+        
+        
+    }
+    
 	protected void uploadTrailToServer(ContentValues trail) {
-		
-		// The following code accomplishes these things:
-		// create an AsyncTask inner class and call execute on it
-		// use URL to upload a joke to the server, and Scanner to check that it was successful
-		// use Toast to notify if the upload was successful
 
 		try {
 			URL url = new URL("http://dontcare.x10.mx/trails/addOneTrail.php?" + "_trailName="
