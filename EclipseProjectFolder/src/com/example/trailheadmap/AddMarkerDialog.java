@@ -20,6 +20,10 @@ public class AddMarkerDialog extends DialogFragment {
 	private EditText trailNameField;
 	private String trailNameText = "";
 	
+	public static final int RATE_GOOD_INDEX = 0;
+	public static final int RATE_BAD_INDEX = 1;
+	public static final int DO_NOT_RATE_INDEX = 2;
+	
 	/** Interface to for parent fragment to use for callbacks. */
 	public interface AddMarkerDialogListener {
         public void onAddMarkerClick(DialogFragment dialog);

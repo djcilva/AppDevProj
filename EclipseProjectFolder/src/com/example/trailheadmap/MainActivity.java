@@ -40,7 +40,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MainActivity extends FragmentActivity implements AddMarkerDialog.AddMarkerDialogListener {
+public class MainActivity extends FragmentActivity implements AddMarkerDialog.AddMarkerDialogListener,
+															  RateMarkerDialog.RateMarkerDialogListener {
 
 	// Constants
 	private static final int INITIAL_DISTANCE = 3;
@@ -63,6 +64,7 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
     private double latitude;
     private double longitude;
     private Marker lastMarker;
+    private Marker focusMarker;
     private LatLng newMarkerLocation;
     private boolean onlyOnce = true;
     private ArrayList<MarkerOptions> locationMarkerList;
@@ -235,19 +237,19 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
             @Override
             public void onMapLongClick(LatLng latLng) {
             	initiateAddMarkerDialog(latLng);
-<<<<<<< HEAD
-<<<<<<< HEAD
             	//TODO stupid inefficient
-=======
->>>>>>> 7f8136e5d118bbb4e0be6a551b8a450acd247d78
-=======
->>>>>>> 7f8136e5d118bbb4e0be6a551b8a450acd247d78
             	fillArray();
             }
         }));
         
+        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
+			@Override
+			public void onMapClick(LatLng coords) {
+				lastMarker = null;
+			}
+        });
+        
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener(){
-
 			@Override
 			public boolean onMarkerClick(Marker marker) {
 				lastMarker = marker;
@@ -261,11 +263,8 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
 			@Override
 			public void onInfoWindowClick(Marker marker) {
 				// TODO Auto-generated method stub
-				Toast toast = Toast.makeText(MainActivity.this, "Initiate rating system.", Toast.LENGTH_SHORT);
-				toast.show();
 				initiateRateMarkerDialog(marker);
 			}
-        	
         });
     }
     
@@ -293,7 +292,6 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
     		locationMarkerList.add(new MarkerOptions().position(new LatLng(cursor.getDouble(4), cursor.getDouble(5))).title(cursor.getString(1)).snippet(this.getString(R.string.rating_text) + (int)(cursor.getDouble(2) * 100) + "%"));
     		cursor.moveToNext();
     	}
-    	
     }
     
     private void updateDistance() {
@@ -324,8 +322,38 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
 	
 	/** Initiates dialog window to rate marker. */
     private void initiateRateMarkerDialog(Marker marker) {
-    	// TODO: Initiate rating system
-    	//DialogFragment dialog = new RateMarkerDialog();
-        //dialog.show(getSupportFragmentManager(), "RateMarkerDialog");
+    	this.focusMarker = marker;
+    	DialogFragment dialog = new RateMarkerDialog();
+        dialog.show(getSupportFragmentManager(), "RateMarkerDialog");
     }
+
+	@Override
+	public void onRateMarkerClick(DialogFragment dialog, int choice) {
+		Toast toast;
+		
+		switch (choice) {
+			case AddMarkerDialog.RATE_GOOD_INDEX:
+				//TODO: rate trail function here.
+				toast = Toast.makeText(this, "Apply Good Rating.", Toast.LENGTH_SHORT);
+				toast.show();
+				break;
+		
+			case AddMarkerDialog.RATE_BAD_INDEX:
+				//TODO: rate trail function here.
+				toast = Toast.makeText(this, "Apply Bad Rating.", Toast.LENGTH_SHORT);
+				toast.show();
+				break;
+			
+			case AddMarkerDialog.DO_NOT_RATE_INDEX:
+				//TODO: rate trail function here.
+				toast = Toast.makeText(this, "Do not change rating.", Toast.LENGTH_SHORT);
+				toast.show();
+				break;
+			
+			default:
+				return;
+		}
+		this.lastMarker = null;
+		this.focusMarker.hideInfoWindow();
+	}
 }
