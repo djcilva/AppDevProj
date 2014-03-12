@@ -92,8 +92,7 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
          * right now, delete the table and re-add the hard-coded in links
          */
         datasource.clearTable();
-        populateTable();
-        fillArray();
+        datasource.getJokesFromServer();
 
         
         try {
@@ -162,6 +161,7 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
 
             @Override
             public void onMyLocationChange(Location arg0) {
+               fillArray();
          	   latitude = arg0.getLatitude();
          	   longitude = arg0.getLongitude();
          	   if (onlyOnce){
@@ -235,7 +235,10 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
             @Override
             public void onMapLongClick(LatLng latLng) {
             	initiateAddMarkerDialog(latLng);
+<<<<<<< HEAD
             	//TODO stupid inefficient
+=======
+>>>>>>> 7f8136e5d118bbb4e0be6a551b8a450acd247d78
             	fillArray();
             }
         }));
@@ -278,19 +281,6 @@ public class MainActivity extends FragmentActivity implements AddMarkerDialog.Ad
         } 
     }
  
-    private void populateTable(){
-    	datasource.createTrail("Bishop's Peak", 35.29727, -120.68520);
-    	datasource.createTrail("El chorro regional park" , 35.33171, -120.73140);
-    	datasource.createTrail("Reservoir Canyon" , 35.286302, -120.622689);
-    	datasource.createTrail("Cerro" , 35.282752, -120.680450);
-    	datasource.createTrail("Felsman Loop" , 35.306269, -120.691686);
-    	datasource.createTrail("Laguna Lake" , 35.271036, -120.685577);
-    	datasource.createTrail("South Hills" , 35.262235, -120.659639);
-    	datasource.createTrail("Yucca Ridge" , 35.263087, -120.660932);
-    	datasource.createTrail("Lemon Grove Loop", 35.275062, -120.672256);
-    	datasource.createTrail("Terrace Hill" , 35.273469, -120.650761);
-    	datasource.createTrail("Irish Hills" , 35.237753, -120.780454);
-    }
     
     private void fillArray(){
     	locationMarkerList.clear();
